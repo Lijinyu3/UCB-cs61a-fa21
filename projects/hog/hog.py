@@ -22,6 +22,19 @@ def roll_dice(num_rolls, dice=six_sided):
     assert num_rolls > 0, 'Must roll at least once.'
     # BEGIN PROBLEM 1
     "*** YOUR CODE HERE ***"
+    count, sum = 0, 0
+    sow_sad = False
+    # roll num_rolls times
+    while count < num_rolls:
+        dice_num = dice()
+        if dice_num == 1:
+            sow_sad = True
+        count += 1
+        sum += dice_num
+    # check if happened "sow sad"
+    if sow_sad:
+        sum = 1
+    return sum
     # END PROBLEM 1
 
 
@@ -31,7 +44,19 @@ def picky_piggy(score):
     score:  The opponent's current score.
     """
     # BEGIN PROBLEM 2
-    "*** YOUR CODE HERE ***"
+    REPEATING_DIGITS = 6   # 1/7 is 6-digit repeating decimal
+    real_digit = score % REPEATING_DIGITS
+    # if is 6th digit, pts is same as 0th(score == 0)
+    if real_digit == 0:
+        real_digit = 6
+    dividend, divisor, quotient = 1, 7, 0
+    while real_digit > 0:
+        dividend *= 10
+        quotient = dividend // divisor
+        dividend -= quotient * divisor
+        real_digit -= 1
+    return quotient
+
     # END PROBLEM 2
 
 
@@ -51,7 +76,11 @@ def take_turn(num_rolls, opponent_score, dice=six_sided, goal=GOAL_SCORE):
     assert num_rolls <= 10, 'Cannot roll more than 10 dice.'
     assert opponent_score < goal, 'The game should be over.'
     # BEGIN PROBLEM 3
-    "*** YOUR CODE HERE ***"
+    if num_rolls == 0:
+        pts = picky_piggy(opponent_score)
+    else:
+        pts = roll_dice(num_rolls, dice)
+    return pts
     # END PROBLEM 3
 
 
@@ -62,7 +91,10 @@ def hog_pile(player_score, opponent_score):
     opponent_score: The total score of the other player.
     """
     # BEGIN PROBLEM 4
-    "*** YOUR CODE HERE ***"
+    bonus_point = 0
+    if player_score == opponent_score:
+        bonus_point = player_score
+    return bonus_point
     # END PROBLEM 4
 
 
@@ -99,9 +131,22 @@ def play(strategy0, strategy1, score0=0, score1=0, dice=six_sided,
     goal:       The game ends and someone wins when this score is reached.
     say:        The commentary function to call at the end of the first turn.
     """
+    def have_winner():
+        return score0 >= goal or score1 >= goal
+
+    def calc_pts(score, opponent, rolls):
+        score += take_turn(rolls, opponent, dice, goal)
+        score += hog_pile(score, opponent)
+        return score
+
     who = 0  # Who is about to take a turn, 0 (first) or 1 (second)
     # BEGIN PROBLEM 5
-    "*** YOUR CODE HERE ***"
+    while not have_winner():
+        if who == 0:
+            score0 = calc_pts(score0, score1, strategy0(score0, score1))
+        else:
+            score1 = calc_pts(score1, score0, strategy1(score1, score0))
+        who = next_player(who)
     # END PROBLEM 5
     # (note that the indentation for the problem 6 prompt (***YOUR CODE HERE***) might be misleading)
     # BEGIN PROBLEM 6
