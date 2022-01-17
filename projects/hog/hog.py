@@ -1,5 +1,6 @@
 """CS 61A Presents The Game of Hog."""
 
+from tkinter import W
 from dice import six_sided, four_sided, make_test_dice
 from ucb import main, trace, interact
 
@@ -147,6 +148,7 @@ def play(strategy0, strategy1, score0=0, score1=0, dice=six_sided,
         else:
             score1 = calc_pts(score1, score0, strategy1(score1, score0))
         who = next_player(who)
+        say = say(score0, score1)
     # END PROBLEM 5
     # (note that the indentation for the problem 6 prompt (***YOUR CODE HERE***) might be misleading)
     # BEGIN PROBLEM 6
@@ -228,7 +230,15 @@ def announce_highest(who, last_score=0, running_high=0):
     """
     assert who == 0 or who == 1, 'The who argument should indicate a player.'
     # BEGIN PROBLEM 7
-    "*** YOUR CODE HERE ***"
+
+    def say_highest(score0, score1):
+        score = score0 if who == 0 else score1
+        gain = score - last_score
+        if gain > running_high:
+            print(f'{gain} point(s)! That\'s a record gain for Player {who}!')
+        return announce_highest(who, score, max(gain, running_high))
+
+    return say_highest
     # END PROBLEM 7
 
 
