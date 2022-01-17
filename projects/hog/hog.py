@@ -278,7 +278,18 @@ def make_averaged(original_function, trials_count=1000):
     3.0
     """
     # BEGIN PROBLEM 8
-    "*** YOUR CODE HERE ***"
+    
+    def calc_average(*args):
+        """Calculate the average value of ORIGINAL_FUNCTION called TRIALS_COUNT times
+        and also pass the arguments in this function into ORIGINAL_FUNCTION
+        """
+        count, sum = 0, 0
+        while count < trials_count:
+            count += 1
+            sum += original_function(*args)
+        return sum / count
+
+    return calc_average
     # END PROBLEM 8
 
 
@@ -292,7 +303,19 @@ def max_scoring_num_rolls(dice=six_sided, trials_count=1000):
     1
     """
     # BEGIN PROBLEM 9
-    "*** YOUR CODE HERE ***"
+    BEGIN, END = 1, 10
+    count = BEGIN
+    best_num, max_score = -1, -1
+    average_dice = make_averaged(roll_dice, trials_count)
+
+    while count <= END:
+        score = average_dice(count, dice)
+        if score > max_score:
+            best_num = count
+            max_score = score
+        count += 1
+
+    return best_num
     # END PROBLEM 9
 
 
@@ -317,14 +340,15 @@ def average_win_rate(strategy, baseline=always_roll(6)):
 
 def run_experiments():
     """Run a series of strategy experiments and report results."""
-    six_sided_max = max_scoring_num_rolls(six_sided)
+    TRIALS_COUNT = 100000
+    six_sided_max = max_scoring_num_rolls(six_sided, TRIALS_COUNT)
     print('Max scoring num rolls for six-sided dice:', six_sided_max)
-    print('always_roll(6) win rate:', average_win_rate(always_roll(6)))
-
-    #print('always_roll(8) win rate:', average_win_rate(always_roll(8)))
-    #print('picky_piggy_strategy win rate:', average_win_rate(picky_piggy_strategy))
+    for i in range(1, 11):
+        print(f'always_roll({i}) win rate:', average_win_rate(always_roll(i)))
+        print(f'with its score:', make_averaged(roll_dice)(i))
+    print('picky_piggy_strategy win rate:', average_win_rate(picky_piggy_strategy))
     print('hog_pile_strategy win rate:', average_win_rate(hog_pile_strategy))
-    #print('final_strategy win rate:', average_win_rate(final_strategy))
+    print('final_strategy win rate:', average_win_rate(final_strategy))
     "*** You may add additional experiments as you wish ***"
 
 
@@ -333,7 +357,10 @@ def picky_piggy_strategy(score, opponent_score, cutoff=8, num_rolls=6):
     returns NUM_ROLLS otherwise.
     """
     # BEGIN PROBLEM 10
-    return 6  # Remove this line once implemented.
+    if picky_piggy(opponent_score) >= cutoff:
+        return 0
+    else:
+        return num_rolls
     # END PROBLEM 10
 
 
@@ -343,17 +370,26 @@ def hog_pile_strategy(score, opponent_score, cutoff=8, num_rolls=6):
     Otherwise, it returns NUM_ROLLS.
     """
     # BEGIN PROBLEM 11
-    return 6  # Remove this line once implemented.
+    gain = picky_piggy(opponent_score)
+    if hog_pile(score + gain, opponent_score):
+        return 0
+    elif gain >= cutoff:
+        return 0
+    else:
+        return num_rolls
     # END PROBLEM 11
 
 
 def final_strategy(score, opponent_score):
-    """Write a brief description of your final strategy.
-
-    *** YOUR DESCRIPTION HERE ***
+    """Choose the best strategy for each step, based on which strategy has the better score for each step.
+    prevent the risks as well.
+        *** YOUR DESCRIPTION HERE ***
     """
     # BEGIN PROBLEM 12
-    return 6  # Remove this line once implemented.
+    NUM_ROLLS = 6
+    AVERAGE_GAIN = 8   # average score for the 'always 5/6' strategy with the highest average win rate
+    gain = hog_pile_strategy(score, opponent_score, cutoff= AVERAGE_GAIN, num_rolls= NUM_ROLLS)
+    return 6
     # END PROBLEM 12
 
 ##########################
