@@ -25,7 +25,11 @@ def unique_digits(n):
     >>> unique_digits(10) # 0 and 1
     2
     """
-    "*** YOUR CODE HERE ***"
+    count = 0
+    for i in range(0, 10):
+        if has_digit(n, i):
+            count += 1
+    return count
 
 
 def has_digit(n, k):
@@ -35,7 +39,11 @@ def has_digit(n, k):
     >>> has_digit(12, 7)
     False
     """
-    "*** YOUR CODE HERE ***"
+    while n > 0:
+        if k == n % 10:
+            return True
+        n //= 10
+    return False
 
 
 def ordered_digits(x):
@@ -57,7 +65,14 @@ def ordered_digits(x):
     False
 
     """
-    "*** YOUR CODE HERE ***"
+    last_digit = 10
+    while x > 0:
+        current_digit = x % 10
+        if last_digit < current_digit:
+            return False
+        last_digit = current_digit
+        x //= 10
+    return True
 
 
 def get_k_run_starter(n, k):
@@ -81,12 +96,12 @@ def get_k_run_starter(n, k):
     """
     i = 0
     final = None
-    while ____________________________:
-        while ____________________________:
-            ____________________________
-        final = ____________________________
-        i = ____________________________
-        n = ____________________________
+    while i <= k:
+        while n // 10 and n % 10 > (n // 10) % 10:
+            n //= 10
+        final = n % 10
+        i = i + 1
+        n = n // 10
     return final
 
 
@@ -105,7 +120,12 @@ def make_repeater(func, n):
     >>> make_repeater(square, 0)(5) # Yes, it makes sense to apply the function zero times!
     5
     """
-    "*** YOUR CODE HERE ***"
+    count = 1
+    repeater = identity
+    while count <= n:
+        repeater = composer(func, repeater)
+        count += 1
+    return repeater
 
 
 def composer(func1, func2):
@@ -123,7 +143,7 @@ def apply_twice(func):
     >>> apply_twice(square)(2)
     16
     """
-    "*** YOUR CODE HERE ***"
+    return make_repeater(func, 2)
 
 
 def protected_secret(password, secret, num_attempts):
@@ -145,5 +165,10 @@ def protected_secret(password, secret, num_attempts):
     SECRET LOCKED
     """
     def get_secret(password_attempt):
-        "*** YOUR CODE HERE ***"
+        if num_attempts == 0:
+            return print('SECRET LOCKED') or get_secret
+        elif password_attempt == password:
+            return print(secret) or get_secret
+        else:
+            return print('INCORRECT PASSWORD') or protected_secret(password, secret, num_attempts - 1)
     return get_secret
