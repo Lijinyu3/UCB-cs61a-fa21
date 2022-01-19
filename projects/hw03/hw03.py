@@ -22,7 +22,17 @@ def num_eights(pos):
     ...       ['Assign', 'AnnAssign', 'AugAssign', 'NamedExpr'])
     True
     """
-    "*** YOUR CODE HERE ***"
+    def check_digit():
+        if pos % 10 == 8:
+            return 1
+        else:
+            return 0
+
+
+    if pos < 10:
+        return check_digit()
+    else:
+        return check_digit() + num_eights(pos // 10)
 
 
 def pingpong(n):
@@ -58,7 +68,24 @@ def pingpong(n):
     ...       ['Assign', 'AnnAssign', 'AugAssign', 'NamedExpr'])
     True
     """
-    "*** YOUR CODE HERE ***"
+    def get_direction(x):
+        def change_direction():
+            if (x - 1) % 8 == 0 or num_eights(x - 1):
+                return -1
+            else:
+                return 1
+        if x == 1:
+            return 1
+        else:
+            return get_direction(x - 1) * change_direction()
+    
+
+    if n == 1:
+        return 1
+    else:
+        return get_direction(n) + pingpong(n - 1)
+
+
 
 
 def missing_digits(n):
@@ -88,7 +115,17 @@ def missing_digits(n):
     >>> check(HW_SOURCE_FILE, 'missing_digits', ['While', 'For'])
     True
     """
-    "*** YOUR CODE HERE ***"
+    def calc_digits(n1, n2):
+        if n1 + 1 >= n2:
+            return 0
+        else:
+            return 1 + calc_digits(n1 + 1, n2)
+    
+
+    if n // 10 == 0:
+        return 0
+    else:
+        return calc_digits(n // 10 % 10, n % 10) + missing_digits(n // 10)
 
 
 def ascending_coin(coin):
@@ -144,7 +181,20 @@ def count_coins(change):
     >>> check(HW_SOURCE_FILE, 'count_coins', ['While', 'For'])
     True
     """
-    "*** YOUR CODE HERE ***"
+    def count_one_way(minimum, change):
+        """Return the numebr of ways to make change using the coins which biggest is the maximum value"""
+        if change == 0:
+            return 1
+        elif change < 0 or minimum == None:
+            return 0
+        else:
+            return count_one_way(minimum, change - minimum) + count_one_way(ascending_coin(minimum), change)
+    
+
+    if change <= 0:
+        return 0
+    else:
+        return count_one_way(1, change)
 
 
 def print_move(origin, destination):
