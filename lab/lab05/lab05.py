@@ -10,7 +10,10 @@ def factors_list(n):
     [1, 2, 4, 7, 14]
     """
     all_factors = []
-    "*** YOUR CODE HERE ***"
+    for i in range(1, n):
+        if n % i == 0:
+            all_factors += [i]
+    return all_factors
 
 
 def flatten(s):
@@ -29,7 +32,20 @@ def flatten(s):
     >>> x
     [[1, [1, 1]], 1, [1, 1]]
     """
-    "*** YOUR CODE HERE ***"
+    def reduce(func, list):
+        if len(list) == 0:
+            return []
+        else:
+            return func(reduce(func, list[1:]), list[0])
+    
+
+    flatten_list = []
+    for x in s:
+        if type(x) == list:
+            flatten_list += flatten(x)
+        else:
+            flatten_list += [x]
+    return flatten_list
 
 
 from math import sqrt
@@ -46,7 +62,9 @@ def distance(city_a, city_b):
     >>> distance(city_c, city_d)
     5.0
     """
-    "*** YOUR CODE HERE ***"
+    a_x, a_y = get_lat(city_a), get_lon(city_a)
+    b_x, b_y = get_lat(city_b), get_lon(city_b)
+    return sqrt((a_x - b_x)**2 + (a_y - b_y)**2)
 
 
 def closer_city(lat, lon, city_a, city_b):
@@ -64,7 +82,12 @@ def closer_city(lat, lon, city_a, city_b):
     >>> closer_city(41.29, 174.78, bucharest, vienna)
     'Bucharest'
     """
-    "*** YOUR CODE HERE ***"
+    city = make_city('', lat, lon)
+    a_distance, b_distance = distance(city, city_a), distance(city, city_b)
+    if a_distance < b_distance:
+        return get_name(city_a)
+    else:
+        return get_name(city_b)
 
 
 def check_city_abstraction():
@@ -163,7 +186,13 @@ def berry_finder(t):
     >>> berry_finder(t)
     True
     """
-    "*** YOUR CODE HERE ***"
+    str_to_find = 'berry'
+    if label(t) == str_to_find:
+        return True
+    for branch in branches(t):
+        if berry_finder(branch):
+            return True
+    return False
 
 
 def sprout_leaves(t, leaves):
@@ -199,7 +228,11 @@ def sprout_leaves(t, leaves):
           1
           2
     """
-    "*** YOUR CODE HERE ***"
+    if is_leaf(t):
+        t = tree(label(t), [tree(label) for label in leaves])
+    else:
+        t = tree(label(t), [sprout_leaves(branch, leaves) for branch in branches(t)])
+    return t
 
 # Abstraction tests for sprout_leaves and berry_finder
 
