@@ -20,8 +20,14 @@ def gen_perms(seq):
     >>> sorted(gen_perms("ab"))
     [['a', 'b'], ['b', 'a']]
     """
-    "*** YOUR CODE HERE ***"
-
+    def seq_removed_i(i):
+        return seq[:i] + seq[min(len(seq), i + 1):]
+    if len(seq) == 1:
+        yield [seq[0]]
+    else:
+        for i in range(len(seq)):
+            for j in gen_perms(seq_removed_i(i)):
+                yield [seq[i]] + j
 
 def path_yielder(t, value):
     """Yields all possible paths from the root of t to a node with the label
@@ -57,10 +63,11 @@ def path_yielder(t, value):
     >>> sorted(list(path_to_2))
     [[0, 2], [0, 2, 1, 2]]
     """
-    "*** YOUR CODE HERE ***"
-    for _______________ in _________________:
-        for _______________ in _________________:
-            "*** YOUR CODE HERE ***"
+    if t.label == value:
+        yield [value]
+    for branch in t.branches:
+        for path in path_yielder(branch, value):
+            yield [t.label] + path
 
 
 def preorder(t):
@@ -73,7 +80,15 @@ def preorder(t):
     >>> preorder(tree(2, [tree(4, [tree(6)])]))
     [2, 4, 6]
     """
-    "*** YOUR CODE HERE ***"
+    # Have done it in q7 of hw04 
+    # Solution below quoted from q7 of hw04
+    # return sum([preorder(b) for b in branches(t)], start= [label(t)])
+    def preorder_generator(t):
+        yield t.label
+        for branch in t.branches:
+            yield from preorder_generator(branch)
+
+    return list(preorder_generator(t))
 
 
 def generate_preorder(t):
@@ -87,7 +102,9 @@ def generate_preorder(t):
     >>> list(gen)
     [2, 3, 4, 5, 6, 7]
     """
-    "*** YOUR CODE HERE ***"
+    yield t.label
+    for branch in t.branches:
+        yield from preorder(branch)
 
 
 def remainders_generator(m):
@@ -121,7 +138,13 @@ def remainders_generator(m):
     7
     11
     """
-    "*** YOUR CODE HERE ***"
+    def generator_yielder(remainder):
+        for i in naturals():
+            if i % m == remainder:
+                yield i
+    
+    for i in range(m):
+        yield generator_yielder(i)
 
 
 class Tree:
