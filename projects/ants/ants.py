@@ -177,6 +177,8 @@ class ThrowerAnt(Ant):
     implemented = True
     damage = 1
     food_cost = 3
+    min_range = 0
+    max_range = float('inf')
 
     def nearest_bee(self):
         """Return the nearest Bee in a Place that is not the HIVE, connected to
@@ -185,14 +187,14 @@ class ThrowerAnt(Ant):
         This method returns None if there is no such Bee (or none in range).
         """
         # BEGIN Problem 3 and 4
-        def find_place_bees(place):
-            if place.entrance.is_hive:
+        def find_place_bees(place, distance= 0):
+            if place.entrance.is_hive or distance + 1 > self.max_range:
                 return place.bees
             else:
-                if place.bees:
+                if place.bees and distance >= self.min_range:
                     return place.bees
                 else:
-                    return find_place_bees(place.entrance)
+                    return find_place_bees(place.entrance, distance + 1)
 
         return random_bee(find_place_bees(self.place))  # REPLACE THIS LINE
         # END Problem 3 and 4
@@ -223,9 +225,10 @@ class ShortThrower(ThrowerAnt):
 
     name = 'Short'
     food_cost = 2
-    # OVERRIDE CLASS ATTRIBUTES HERE
+    min_range = 0
+    max_range = 3
     # BEGIN Problem 4
-    implemented = False   # Change to True to view in the GUI
+    implemented = True   # Change to True to view in the GUI
     # END Problem 4
 
 
@@ -234,9 +237,10 @@ class LongThrower(ThrowerAnt):
 
     name = 'Long'
     food_cost = 2
-    # OVERRIDE CLASS ATTRIBUTES HERE
+    min_range = 5
+    max_range = float('inf')
     # BEGIN Problem 4
-    implemented = False   # Change to True to view in the GUI
+    implemented = True   # Change to True to view in the GUI
     # END Problem 4
 
 
@@ -248,7 +252,7 @@ class FireAnt(Ant):
     food_cost = 5
     # OVERRIDE CLASS ATTRIBUTES HERE
     # BEGIN Problem 5
-    implemented = False   # Change to True to view in the GUI
+    implemented = True   # Change to True to view in the GUI
     # END Problem 5
 
     def __init__(self, health=3):
@@ -263,7 +267,12 @@ class FireAnt(Ant):
         the additional damage if the fire ant dies.
         """
         # BEGIN Problem 5
-        "*** YOUR CODE HERE ***"
+        reflected_damage = amount
+        if amount >= self.health:
+            reflected_damage += self.damage
+        for bee in self.place.bees[:]:
+            bee.reduce_health(reflected_damage)
+        Ant.reduce_health(self, amount)
         # END Problem 5
 
 # BEGIN Problem 6
