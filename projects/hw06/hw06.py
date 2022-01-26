@@ -1,3 +1,7 @@
+from queue import Empty
+import string
+
+
 class VendingMachine:
     """A vending machine that vends some product for some price.
 
@@ -35,8 +39,50 @@ class VendingMachine:
     >>> w.vend()
     'Here is your soda.'
     """
-    "*** YOUR CODE HERE ***"
+    def __init__(self, store, price):
+        self.store = store
+        self.price = price
+        self.amount = 0
+        self.balance = 0
+    
+    def restock(self, amount):
+        self.amount += amount
+        return f'Current {self.store} stock: {self.amount}'
+    
+    def refund(self):
+        refund = self.balance
+        self.balance = 0
+        return refund
+    
+    def need_refund(self):
+        ret = 'Nothing left to vend. Please restock.'
+        if self.balance:
+            ret += f' Here is your ${self.refund()}.'
+        return ret
 
+    def get_change(self):
+        if self.balance:
+            return f' and ${self.refund()} change'
+        else:
+            return ''
+    
+    def vend(self):
+        if not self.amount:
+            return self.need_refund()
+        elif self.balance < self.price:
+            return f'You must add ${self.price - self.balance} more funds.'
+        else:
+            self.amount -= 1
+            self.balance -= self.price
+            return f'Here is your {self.store}{self.get_change()}.'
+    
+    def add_funds(self, fund):
+        self.balance += fund
+        if not self.amount:
+            return self.need_refund()
+        else:
+            return f'Current balance: ${self.balance}'
+    
 
 class Mint:
     """A mint creates coins by stamping on years.
@@ -73,10 +119,10 @@ class Mint:
         self.update()
 
     def create(self, kind):
-        "*** YOUR CODE HERE ***"
+        return kind(self.year)
 
     def update(self):
-        "*** YOUR CODE HERE ***"
+        self.year = self.present_year
 
 
 class Coin:
@@ -84,7 +130,7 @@ class Coin:
         self.year = year
 
     def worth(self):
-        "*** YOUR CODE HERE ***"
+        return self.cents + max(0, Mint.present_year - self.year - 50)
 
 
 class Nickel(Coin):
@@ -111,7 +157,11 @@ def store_digits(n):
     >>> print("Do not use str or reversed!") if any([r in cleaned for r in ["str", "reversed"]]) else None
     >>> link1 = Link(3, Link(Link(4), Link(5, Link(6))))
     """
-    "*** YOUR CODE HERE ***"
+    link = Link.empty
+    while n:
+        link = Link(n % 10, link)
+        n //= 10
+    return link
 
 
 def deep_map_mut(fn, link):
@@ -131,7 +181,14 @@ def deep_map_mut(fn, link):
     >>> print(link1)
     <9 <16> 25 36>
     """
-    "*** YOUR CODE HERE ***"
+    if link == Link.empty:
+        return
+    if isinstance(link.first, Link):
+        deep_map_mut(fn, link.first)
+    else:
+        link.first = fn(link.first)
+    
+    deep_map_mut(fn, link.rest)
 
 
 def two_list(vals, amounts):
@@ -153,7 +210,13 @@ def two_list(vals, amounts):
     >>> c
     Link(1, Link(1, Link(3, Link(3, Link(2)))))
     """
-    "*** YOUR CODE HERE ***"
+    if not amounts:
+        return Link.empty
+    if amounts[0] == 0:
+        return two_list(vals[1:], amounts[1:])
+    else:
+        amounts[0] -= 1
+        return Link(vals[0], two_list(vals, amounts))
 
 
 class VirFib():
@@ -182,7 +245,11 @@ class VirFib():
         self.value = value
 
     def next(self):
-        "*** YOUR CODE HERE ***"
+        if self.value == 0:
+            self.pre_val = 1
+        new_Fib =  VirFib(self.value + self.pre_val)
+        new_Fib.pre_val = self.value
+        return new_Fib
 
     def __repr__(self):
         return "VirFib object, value " + str(self.value)
@@ -213,7 +280,29 @@ def is_bst(t):
     >>> is_bst(t7)
     False
     """
-    "*** YOUR CODE HERE ***"
+    def bst_f(t, f):
+        if t.is_leaf():
+            return t.label
+        else:
+            return f(t.label ,f(bst_f(b, f) for b in t.branches))
+
+    # no child
+    if t.is_leaf():
+        return True
+    else:
+        # not a binary tree
+        if len(t.branches) > 2:
+            return False
+        # only one child node
+        elif len(t.branches) == 1:
+            return is_bst(t.branches[0])
+        else:
+            # check label
+            if not bst_f(t.branches[0], max) <= t.label < bst_f(t.branches[1], min):
+                return False
+            # check children
+            else:
+                return is_bst(t.branches[0]) and is_bst(t.branches[1])
 
 
 class Link:
