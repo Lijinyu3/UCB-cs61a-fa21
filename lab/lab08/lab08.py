@@ -1,3 +1,6 @@
+from pyparsing import empty
+
+
 def convert_link(link):
     """Takes a linked list and returns a Python list with the same elements.
 
@@ -7,7 +10,10 @@ def convert_link(link):
     >>> convert_link(Link.empty)
     []
     """
-    "*** YOUR CODE HERE ***"
+    if link is Link.empty:
+      return []
+    else:
+      return [link.first] + convert_link(link.rest)
 
 
 def label_squarer(t):
@@ -18,7 +24,9 @@ def label_squarer(t):
     >>> t
     Tree(1, [Tree(9, [Tree(25)]), Tree(49)])
     """
-    "*** YOUR CODE HERE ***"
+    t.label **= 2
+    for b in t.branches:
+      label_squarer(b)
 
 
 def cumulative_mul(t):
@@ -30,7 +38,9 @@ def cumulative_mul(t):
     >>> t
     Tree(105, [Tree(15, [Tree(5)]), Tree(7)])
     """
-    "*** YOUR CODE HERE ***"
+    for b in t.branches:
+      cumulative_mul(b)
+      t.label *= b.label
 
 
 def add_d_leaves(t, v):
@@ -91,7 +101,11 @@ def add_d_leaves(t, v):
           10
         10
     """
-    "*** YOUR CODE HERE ***"
+    def with_depth(d, t):
+      for b in t.branches:
+        with_depth(d + 1, b)
+      t.branches.extend(d * [Tree(v)])
+    with_depth(0, t)
 
 
 def every_other(s):
@@ -111,7 +125,15 @@ def every_other(s):
     >>> singleton
     Link(4)
     """
-    "*** YOUR CODE HERE ***"
+    def remove(list, next_index):
+      if list.rest is Link.empty:
+        return
+      if next_index % 2 == 1:
+        list.rest = list.rest.rest
+        remove(list, next_index + 1)
+      else:
+        remove(list.rest, next_index + 1)
+    remove(s, 1)
 
 
 def prune_small(t, n):
@@ -131,11 +153,11 @@ def prune_small(t, n):
     >>> t3
     Tree(6, [Tree(1), Tree(3, [Tree(1), Tree(2)])])
     """
-    while ___________________________:
-        largest = max(_______________, key=____________________)
-        _________________________
-    for __ in _____________:
-        ___________________
+    while len(t.branches) > n:
+        largest = max(t.branches, key= lambda t: t.label)
+        t.branches.remove(largest)
+    for b in t.branches:
+        prune_small(b, n)
 
 
 class Link:
