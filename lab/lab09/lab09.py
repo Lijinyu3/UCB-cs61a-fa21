@@ -1,3 +1,7 @@
+from functools import reduce
+from operator import mul
+
+
 def insert_into_all(item, nested_list):
     """Return a new list consisting of all the lists in nested_list,
     but with item added to the front of each. You can assume that
@@ -7,7 +11,7 @@ def insert_into_all(item, nested_list):
     >>> insert_into_all(0, nl)
     [[0], [0, 1, 2], [0, 3]]
     """
-    "*** YOUR CODE HERE ***"
+    return [[item] + list for list in nested_list]
 
 
 def subseqs(s):
@@ -20,11 +24,11 @@ def subseqs(s):
     >>> subseqs([])
     [[]]
     """
-    if ________________:
-        ________________
+    if not s:
+        return [[]]
     else:
-        ________________
-        ________________
+        sub_s = subseqs(s[1:])
+        return sub_s + insert_into_all(s[0], sub_s)
 
 
 def non_decrease_subseqs(s):
@@ -43,14 +47,14 @@ def non_decrease_subseqs(s):
     """
     def subseq_helper(s, prev):
         if not s:
-            return ____________________
+            return [[]]
         elif s[0] < prev:
-            return ____________________
+            return subseq_helper(s[1:], prev)
         else:
-            a = ______________________
-            b = ______________________
-            return insert_into_all(________, ______________) + ________________
-    return subseq_helper(____, ____)
+            a = subseq_helper(s[1:], s[0])
+            b = subseq_helper(s[1:], prev)
+            return insert_into_all(s[0], a) + b
+    return subseq_helper(s, -float('inf'))
 
 
 def num_trees(n):
@@ -73,7 +77,11 @@ def num_trees(n):
     429
 
     """
-    "*** YOUR CODE HERE ***"
+    # Calculate through Catalan number
+    # But not clear about the proof of Catalan number
+    multiply_part = lambda n: ((n + k) / k for k in range(2, n + 1))
+    result = reduce(mul, multiply_part(n - 1), 1)
+    return round(result)
 
 
 def merge(incr_a, incr_b):
@@ -95,8 +103,24 @@ def merge(incr_a, incr_b):
     """
     iter_a, iter_b = iter(incr_a), iter(incr_b)
     next_a, next_b = next(iter_a, None), next(iter_b, None)
-    "*** YOUR CODE HERE ***"
-
+    while next_a != None or next_b != None:
+        if next_a == None:
+            yield next_b
+            next_b = next(iter_b, None)
+        elif next_b == None:
+            yield next_a
+            next_a = next(iter_a, None)
+        else:
+            if next_a == next_b:
+                yield next_a
+                next_a = next(iter_a, None)
+                next_b = next(iter_b, None)
+            elif next_a < next_b:
+                yield next_a
+                next_a = next(iter_a, None)
+            else:
+                yield next_b
+                next_b = next(iter_b, None)
 
 class Account:
     """A bank account that allows deposits and withdrawals.
@@ -125,25 +149,31 @@ class Account:
     def __init__(self, account_holder):
         self.balance = 0
         self.holder = account_holder
-        "*** YOUR CODE HERE ***"
+        self.transactions = []
 
     def deposit(self, amount):
         """Increase the account balance by amount, add the deposit
         to the transaction history, and return the new balance.
         """
-        "*** YOUR CODE HERE ***"
+        self.balance += amount
+        self.transactions.append(('deposit', amount))
+        return self.balance
 
     def withdraw(self, amount):
         """Decrease the account balance by amount, add the withdraw
         to the transaction history, and return the new balance.
         """
-        "*** YOUR CODE HERE ***"
+        self.balance -= amount
+        self.transactions.append(('withdraw', amount))
+        return self.balance
 
     def __str__(self):
-        "*** YOUR CODE HERE ***"
+        return f"""{self.holder}'s Balance: ${self.balance}"""
 
     def __repr__(self):
-        "*** YOUR CODE HERE ***"
+        deposits = sum(x[0] == 'deposit' for x in self.transactions)
+        withdraws = len(self.transactions) - deposits
+        return f'Accountholder: {self.holder}, Deposits: {deposits}, Withdraws: {withdraws}'
 
 
 def trade(first, second):
@@ -183,9 +213,9 @@ def trade(first, second):
     """
     m, n = 1, 1
 
-    equal_prefix = lambda: ______________________
-    while _______________________________:
-        if __________________:
+    equal_prefix = lambda: sum(second[:n]) == sum(first[:m])
+    while m <= len(first) and n <= len(second) and not equal_prefix():
+        if sum(first[:m]) < sum(second[:n]):
             m += 1
         else:
             n += 1
@@ -223,11 +253,11 @@ def shuffle(cards):
     ['AH', 'AD', 'AS', 'AC', '2H', '2D', '2S', '2C', '3H', '3D', '3S', '3C']
     """
     assert len(cards) % 2 == 0, 'len(cards) must be even'
-    half = _______________
+    half = len(cards) // 2
     shuffled = []
-    for i in _____________:
-        _________________
-        _________________
+    for i in range(half):
+        shuffled.append(cards[i])
+        shuffled.append(cards[half + i])
     return shuffled
 
 
@@ -251,7 +281,13 @@ def insert(link, value, index):
         ...
     IndexError: Out of bounds!
     """
-    "*** YOUR CODE HERE ***"
+    if link is Link.empty:
+        raise IndexError('Out of bounds!')
+    elif index == 0:
+        link.rest = Link(link.first, link.rest)
+        link.first = value
+    else:
+        insert(link.rest, value, index - 1)
 
 
 def deep_len(lnk):
@@ -268,12 +304,12 @@ def deep_len(lnk):
     >>> deep_len(levels)
     5
     """
-    if ______________:
+    if lnk is Link.empty:
         return 0
-    elif ______________:
+    elif not isinstance(lnk, Link):
         return 1
     else:
-        return _________________________
+        return deep_len(lnk.first) + deep_len(lnk.rest)
 
 
 def make_to_string(front, mid, back, empty_repr):
@@ -292,10 +328,10 @@ def make_to_string(front, mid, back, empty_repr):
     '()'
     """
     def printer(lnk):
-        if ______________:
-            return _________________________
+        if lnk is Link.empty:
+            return empty_repr
         else:
-            return _________________________
+            return front + str(lnk.first) + mid + printer(lnk.rest) + back
     return printer
 
 
@@ -349,7 +385,16 @@ def long_paths(t, n):
     >>> long_paths(whole, 4)
     [[0, 11, 12, 13, 14]]
     """
-    "*** YOUR CODE HERE ***"
+    if not t.branches and n > 0:
+            return []
+    else:
+        branches_path = [long_paths(b, n - 1) for b in t.branches]
+        all_paths = []
+        if not branches_path:
+            all_paths.append([t.label])
+        for path in branches_path:
+            all_paths += [[t.label] + p for p in path]
+        return all_paths
 
 
 class Link:
