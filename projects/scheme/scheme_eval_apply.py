@@ -35,7 +35,10 @@ def scheme_eval(expr, env, _=None):  # Optional third argument is ignored
         return scheme_forms.SPECIAL_FORMS[first](rest, env)
     else:
         # BEGIN PROBLEM 3
-        "*** YOUR CODE HERE ***"
+        operator = scheme_eval(expr.first, env)
+        operands = expr.rest.map(lambda expr: scheme_eval(expr, env))
+        validate_procedure(operator)
+        return scheme_apply(operator, operands, env)
         # END PROBLEM 3
 
 
@@ -45,7 +48,21 @@ def scheme_apply(procedure, args, env):
     validate_procedure(procedure)
     if isinstance(procedure, BuiltinProcedure):
         # BEGIN PROBLEM 2
-        "*** YOUR CODE HERE ***"
+        def get_args(args):
+            """Return args (in Python list) from Scheme list"""
+            if args is nil:
+                return []
+            else:
+                return [args.first] + get_args(args.rest)
+        
+        args_list = get_args(args)
+        # Check if procedure need pass in env
+        if procedure.expect_env:
+            args_list.append(env)
+        try:
+            return procedure.py_func(*args_list)
+        except TypeError:
+            raise SchemeError('incorrect number of arguments')
         # END PROBLEM 2
     elif isinstance(procedure, LambdaProcedure):
         # BEGIN PROBLEM 9
