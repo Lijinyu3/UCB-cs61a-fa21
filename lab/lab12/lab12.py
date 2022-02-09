@@ -13,4 +13,4 @@ def calculator_ops(calc_str):
     >>> calculator_ops("(* 2)")
     []
     """
-    return re.findall(__________, calc_str)
+    return re.findall(r'\(([+\-*/]\s{1}\d+\s{1}\d+)\)', calc_str)
