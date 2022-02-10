@@ -26,19 +26,28 @@ CREATE TABLE sizes AS
 
 -- The size of each dog
 CREATE TABLE size_of_dogs AS
-  SELECT "REPLACE THIS LINE WITH YOUR SOLUTION";
+  SELECT name, size
+    FROM dogs, sizes
+    WHERE height > min AND height <= max;
 
 
 -- All dogs with parents ordered by decreasing height of their parent
 CREATE TABLE by_parent_height AS
-  SELECT "REPLACE THIS LINE WITH YOUR SOLUTION";
+  SELECT child
+    FROM parents, dogs
+    WHERE name = parent
+    ORDER BY -height;
 
 
 -- Filling out this helper table is optional
 CREATE TABLE siblings AS
-  SELECT "REPLACE THIS LINE WITH YOUR SOLUTION";
+  SELECT a_parents.child as a_dog, b_parents.child as b_dog
+    FROM parents as a_parents, parents as b_parents
+    WHERE a_parents.parent = b_parents.parent AND a_parents.child < b_parents.child;
 
 -- Sentences about siblings that are the same size
 CREATE TABLE sentences AS
-  SELECT "REPLACE THIS LINE WITH YOUR SOLUTION";
+  SELECT "The two siblings, " || a_dog || " plus " || b_dog || " have the same size: " || a_sizes.size
+    FROM siblings, size_of_dogs as a_sizes, size_of_dogs as b_sizes
+    WHERE a_sizes.name = a_dog AND b_sizes.name = b_dog AND a_sizes.size = b_sizes.size;
 

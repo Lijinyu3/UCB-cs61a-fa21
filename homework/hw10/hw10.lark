@@ -1,9 +1,18 @@
 rstring: "r\"" regex* "\""
 
-?regex: character | word
+?regex: character | word | group | pipe | class | quantifier
 
 character: LETTER | NUMBER
 word: WORD
+group: "(" regex ")"
+pipe: regex "|" regex
+class: "[" (range+ | character+)+ "]"
+range: (NUMBER "-" NUMBER) | (LETTER "-" LETTER)
+?quantifier: plus_quant | star_quant | num_quant
+?similar_part: (group | character | class)
+plus_quant: similar_part "+"
+star_quant: similar_part "*"
+num_quant: similar_part "{" ((NUMBER? "," NUMBER) | (NUMBER "," NUMBER?)) "}"
 
 %ignore /\s+/
 %import common.LETTER
