@@ -20,7 +20,14 @@ def prune_min(t):
     >>> t3
     Tree(6, [Tree(3, [Tree(1)])])
     """
-    "*** YOUR CODE HERE ***"
+    print(f'DEBUG: {t.label}, {len(t.branches)}')
+    if t.is_leaf():
+        return
+    else:
+        if len(t.branches) == 2:
+            t.branches = [min(t.branches, key= lambda b: b.label)]
+        for b in t.branches:
+            prune_min(b)
 
 
 def address_oneline(text):
@@ -41,10 +48,10 @@ def address_oneline(text):
     >>> address_oneline("790 lowercase St")
     []
     """
-    block_number = r'___'
-    cardinal_dir = r'___'  # whitespace is important!
-    street = r'___'
-    type_abbr = r'___'
+    block_number = r'\d{3,5}'
+    cardinal_dir = r'(?:\b[NEWS]\b )?'  # whitespace is important!
+    street = r'(?:\b[A-Z]\w+\b )+'
+    type_abbr = r'\b[A-Z][a-z]{1,3}\b'
     street_name = f"{cardinal_dir}{street}{type_abbr}"
     return re.findall(f"{block_number} {street_name}", text)
 
@@ -104,12 +111,23 @@ class Player:
         self.name = name
         self.votes = 0
         self.popularity = 100
+    
+    def change_popularity(self, change):
+        self.popularity = max(0, self.popularity + change)
 
     def debate(self, other):
-        "*** YOUR CODE HERE ***"
+        probability = max(0.1, self.popularity / (self.popularity + other.popularity))
+        if random() < probability:
+            self.change_popularity(50)
+        else:
+            self.change_popularity(-50)
+
 
     def speech(self, other):
-        "*** YOUR CODE HERE ***"
+        self.votes += self.popularity // 10
+        self.change_popularity(self.popularity // 10)
+        other.change_popularity(-1 * other.popularity // 10)
+
 
     def choose(self, other):
         return self.speech
@@ -132,8 +150,12 @@ class Game:
         self.turn = 0
 
     def play(self):
+        player, opponent = self.p1, self.p2
         while not self.game_over:
-            "*** YOUR CODE HERE ***"
+            action = player.choose(opponent)
+            action(opponent)
+            self.turn += 1
+            player, opponent = opponent, player
         return self.winner
 
     @property
@@ -142,7 +164,10 @@ class Game:
 
     @property
     def winner(self):
-        "*** YOUR CODE HERE ***"
+        if self.p1.votes == self.p2.votes:
+            return None
+        else:
+            return max([self.p1, self.p2], key= lambda player: player.votes)
 
 
 # Phase 3: New Players
@@ -158,7 +183,7 @@ class AggressivePlayer(Player):
     """
 
     def choose(self, other):
-        "*** YOUR CODE HERE ***"
+        return self.debate if self.popularity <= other.popularity else self.speech
 
 
 class CautiousPlayer(Player):
@@ -175,7 +200,7 @@ class CautiousPlayer(Player):
     """
 
     def choose(self, other):
-        "*** YOUR CODE HERE ***"
+        return self.debate if self.popularity == 0 else self.speech
 
 
 def add_trees(t1, t2):
@@ -213,7 +238,11 @@ def add_trees(t1, t2):
         5
       5
     """
-    "*** YOUR CODE HERE ***"
+    # Unify two trees
+    difference = abs(len(t1.branches) - len(t2.branches))
+    min(t1, t2, key= lambda t: len(t.branches)).branches += difference * [Tree(0)]
+    # Add branches
+    return Tree(t1.label + t2.label, [add_trees(b[0], b[1]) for b in zip(t1.branches, t2.branches)])
 
 
 def foldl(link, fn, z):
@@ -228,8 +257,7 @@ def foldl(link, fn, z):
     """
     if link is Link.empty:
         return z
-    "*** YOUR CODE HERE ***"
-    return foldl(______, ______, ______)
+    return foldl(link.rest, fn, fn(z, link.first))
 
 
 def foldr(link, fn, z):
@@ -242,7 +270,9 @@ def foldr(link, fn, z):
     >>> foldr(lst, mul, 1) # (3 * (2 * (1 * 1)))
     6
     """
-    "*** YOUR CODE HERE ***"
+    if link is Link.empty:
+        return z
+    return fn(link.first, foldr(link.rest, fn, z))
 
 
 def match_url(text):
@@ -260,10 +290,10 @@ def match_url(text):
     >>> match_url("htp://domain.org")
     False
     """
-    scheme = r'___'
-    domain = r'___'
-    path = r'___'
-    anchor = r'___'
+    scheme = r'http(?:s?):\/\/'
+    domain = r'[\w\d]+(\.[\w\d]+)'
+    path = r'\/?(?:[\w\d]+\/)+(?:[\w\d]+(?:\.[\w\d]+)?)?'
+    anchor = r'#[\w\d-]+'
     return bool(re.match(rf"^(?:{scheme})?{domain}(?:{path})?(?:{anchor})?$", text))
 
 
