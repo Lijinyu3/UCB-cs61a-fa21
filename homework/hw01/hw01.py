@@ -160,7 +160,7 @@ def hailstone(n):
 
 
 "*** YOUR CODE HERE ***"
-quine = ''
+quine = 'print(quine, end= "")'
 
 
 def quine_test():
