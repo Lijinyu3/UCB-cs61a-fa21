@@ -53,20 +53,24 @@ class Buffer:
         """Remove the next item from self and return it. If self has
         exhausted its source, returns None."""
         # BEGIN PROBLEM 1
-        "*** YOUR CODE HERE ***"
+        current = self.current()
+        # marked as popped
+        self.index += 1
+        return current
         # END PROBLEM 1
 
     def current(self):
         """Return the current element, or None if none exists."""
-        while _________:
+        while not self.more_on_line():
             try:
                 # BEGIN PROBLEM 1
-                "*** YOUR CODE HERE ***"
+                self.current_line = next(self.source)
+                self.index = 0
                 # END PROBLEM 1
             except StopIteration:
                 self.current_line = ()
                 return None
-        return __________
+        return self.current_line[self.index]
 
     def more_on_line(self):
         return self.index < len(self.current_line)
