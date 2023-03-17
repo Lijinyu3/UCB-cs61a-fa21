@@ -41,8 +41,10 @@ class Frame:
         value = self.bindings.get(symbol)
         if value:
             return value
+        elif self.parent:
+            return self.parent.lookup(symbol)
         else:
-            raise SchemeError("Cannot find this symbol!")
+            raise SchemeError(f"Cannot find this '{symbol}' symbol!")
     # END Problem 1
 
 ##############

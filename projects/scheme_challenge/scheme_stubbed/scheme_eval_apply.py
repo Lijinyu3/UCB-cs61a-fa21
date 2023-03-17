@@ -6,6 +6,7 @@ from scheme_utils import *
 from ucb import main, trace
 
 import scheme_forms
+import functools
 
 ##############
 # Eval/Apply #
@@ -23,19 +24,29 @@ def scheme_eval(expr, env, _=None):  # Optional third argument is ignored
     """
     # BEGIN Problem 1/2
     
-    # self-evaluating atomic expression
-    # or symbols
+    # atomics expressions
     if scheme_atomp(expr):
         if self_evaluating(expr):
             return expr
         if scheme_symbolp(expr):
             return env.lookup(expr)
 
-    # procedures
-    else:
-        procedure = expr.first
+    # combinations (non-atmics expressions)
+    elif scheme_listp(expr):
+        procedure = scheme_eval(expr.first, env)
+        # special forms
+        if procedure in scheme_forms.SPECIAL_FORMS:
+            raise SchemeError("Not finished yet")
+        
+        # call expression
+        validate_procedure(procedure)
         args = expr.rest
-        return scheme_apply()
+        sub_env = Frame(env)
+        return scheme_apply(procedure, args, sub_env)
+    
+    # invalid expressions
+    else:
+        raise SchemeError(f"Invalid input expression: {str(expr)}")
     # END Problem 1/2
 
 
@@ -43,7 +54,23 @@ def scheme_apply(procedure, args, env):
     """Apply Scheme PROCEDURE to argument values ARGS (a Scheme list) in
     Frame ENV, the current environment."""
     # BEGIN Problem 1/2
-    "*** YOUR CODE HERE ***"
+    def get_args(pair_args):
+        if pair_args is nil:
+            return []
+        return [scheme_eval(pair_args.first, env)] + get_args(pair_args.rest)
+        # valued_args = []
+        # while pair_args is not nil:
+        #     valued_args.append(scheme_eval(pair_args.first, env))
+        #     pair_args = pair_args.rest
+        # return valued_args
+    
+    valued_args = get_args(args)
+    if procedure.need_env:
+        valued_args.append(env)
+    try:
+        return procedure.py_func(*valued_args)
+    except TypeError:
+        raise SchemeError("Incorrect arguments number")
     # END Problem 1/2
 
 
