@@ -32,17 +32,16 @@ def scheme_eval(expr, env, _=None):  # Optional third argument is ignored
             return env.lookup(expr)
 
     # combinations (non-atmics expressions)
-    elif scheme_listp(expr) and scheme_symbolp(expr.first):
+    elif scheme_listp(expr):
         # special forms
-        if expr.first in scheme_forms.SPECIAL_FORMS_DICT:
+        if scheme_symbolp(expr.first) and expr.first in scheme_forms.SPECIAL_FORMS_DICT:
             return scheme_forms.SPECIAL_FORMS_DICT[expr.first](expr.rest, env)
         
-        procedure = scheme_eval(expr.first, env)
         # call expression
+        procedure = scheme_eval(expr.first, env)
         validate_procedure(procedure)
-        args = expr.rest
-        sub_env = Frame(env)
-        return scheme_apply(procedure, args, sub_env)
+        args = expr.rest.map(lambda unevaled: scheme_eval(unevaled, env))
+        return scheme_apply(procedure, args, env)
     
     # invalid expressions
     else:
@@ -57,18 +56,30 @@ def scheme_apply(procedure, args, env):
     def get_args(pair_args):
         if pair_args is nil:
             return []
-        return [scheme_eval(pair_args.first, env)] + get_args(pair_args.rest)
-        # valued_args = []
-        # while pair_args is not nil:
-        #     valued_args.append(scheme_eval(pair_args.first, env))
-        #     pair_args = pair_args.rest
-        # return valued_args
+        return [pair_args.first] + get_args(pair_args.rest)
+    
+    def get_appliable_func(procedure, valued_args, env):
+        if isinstance(procedure, BuiltinProcedure):
+            if procedure.need_env:
+                valued_args.append(env)
+            return lambda :procedure.py_func(*valued_args)
+        if isinstance(procedure, LambdaProcedure):
+            # the parent of the new frame when the function is called
+            # is the parent of this function
+            # that is the frame where this function was defined
+            lambda_env = Frame(procedure.env)
+            iter_args = iter(valued_args)
+            validate_form(args, len(procedure.formals), len(procedure.formals))
+            procedure.formals.map(lambda p: lambda_env.define(p, next(iter_args)))
+            return lambda :scheme_forms.begin_form(procedure.body, lambda_env)
+        
+        raise SchemeError("Unknown procedure")
+
     
     valued_args = get_args(args)
-    if procedure.need_env:
-        valued_args.append(env)
+    func = get_appliable_func(procedure, valued_args, env)
     try:
-        return procedure.py_func(*valued_args)
+        return func()
     except TypeError:
         raise SchemeError("Incorrect arguments number")
     # END Problem 1/2

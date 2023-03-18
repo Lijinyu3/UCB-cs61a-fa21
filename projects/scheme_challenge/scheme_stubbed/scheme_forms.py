@@ -24,8 +24,15 @@ def define_form(args, env):
         value = scheme_eval(unevaluated, env)
         env.define(symbol, value)
         return symbol
-    if scheme_listp(symbol):
-        raise SchemeError("Not done yet")
+    # function define
+    if scheme_listp(symbol) and scheme_symbolp(symbol.first):
+        # (define (<name> [param] ...) <body> ...)
+        func_name = symbol.first
+        lambda_formal, lambda_body = symbol.rest, args.rest
+        lambda_args = Pair(lambda_formal, lambda_body)
+        func_pointer = lambda_form(lambda_args, env)
+        env.define(func_name, func_pointer)
+        return func_name
     
     raise SchemeError(f"{symbol} is not a definable symbol")
 
