@@ -32,12 +32,12 @@ def scheme_eval(expr, env, _=None):  # Optional third argument is ignored
             return env.lookup(expr)
 
     # combinations (non-atmics expressions)
-    elif scheme_listp(expr):
-        procedure = scheme_eval(expr.first, env)
+    elif scheme_listp(expr) and scheme_symbolp(expr.first):
         # special forms
-        if procedure in scheme_forms.SPECIAL_FORMS:
-            raise SchemeError("Not finished yet")
+        if expr.first in scheme_forms.SPECIAL_FORMS_DICT:
+            return scheme_forms.SPECIAL_FORMS_DICT[expr.first](expr.rest, env)
         
+        procedure = scheme_eval(expr.first, env)
         # call expression
         validate_procedure(procedure)
         args = expr.rest

@@ -33,6 +33,7 @@ class Frame:
         """Define Scheme SYMBOL to have VALUE."""
         # BEGIN Problem 1
         self.bindings[symbol] = value
+        return self.bindings[symbol]
         # END Problem 1
 
     # BEGIN Problem 1
