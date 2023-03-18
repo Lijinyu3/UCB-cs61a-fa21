@@ -29,8 +29,10 @@ def define_form(args, env):
     
     raise SchemeError(f"{symbol} is not a definable symbol")
 
-def quote_form():
-    return None
+def quote_form(args, _= None):
+    # the args of quote is an expression
+    validate_form(args, 1, 1)
+    return args.first
 # END PROBLEM 1/2/3
 
 SPECIAL_FORMS_DICT = {
