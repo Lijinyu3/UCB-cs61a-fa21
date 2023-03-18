@@ -40,7 +40,7 @@ class Frame:
     def lookup(self, symbol):
         """Look up SYMBOL in bindings of this environment"""
         value = self.bindings.get(symbol)
-        if value:
+        if value is not None:
             return value
         elif self.parent:
             return self.parent.lookup(symbol)

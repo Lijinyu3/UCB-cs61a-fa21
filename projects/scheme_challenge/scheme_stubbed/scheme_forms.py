@@ -33,10 +33,27 @@ def quote_form(args, _= None):
     # the args of quote is an expression
     validate_form(args, 1, 1)
     return args.first
+
+def begin_form(args, env):
+    value = scheme_eval(args.first, env)
+    if args.rest is nil:
+        return value
+    return begin_form(args.rest, env)
+
+def lambda_form(args, env):
+    # (lambda ([param]) <body>)
+    validate_form(args, 2) # empty param pair still counts one len
+    param = args.first
+    body = args.rest
+    validate_formals(param)
+    return LambdaProcedure(param, body, env)
+
 # END PROBLEM 1/2/3
 
 SPECIAL_FORMS_DICT = {
     'define': define_form,
-    'quote': quote_form
+    'quote': quote_form,
+    'begin': begin_form,
+    'lambda': lambda_form
 }
 
