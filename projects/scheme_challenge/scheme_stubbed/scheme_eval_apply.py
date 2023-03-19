@@ -25,11 +25,10 @@ def scheme_eval(expr, env, _=None):  # Optional third argument is ignored
     # BEGIN Problem 1/2
     
     # atomics expressions
-    if scheme_atomp(expr):
-        if self_evaluating(expr):
-            return expr
-        if scheme_symbolp(expr):
-            return env.lookup(expr)
+    if self_evaluating(expr):
+        return expr
+    if scheme_symbolp(expr):
+        return env.lookup(expr)
 
     # combinations (non-atmics expressions)
     elif scheme_listp(expr):
@@ -72,6 +71,14 @@ def scheme_apply(procedure, args, env):
             validate_form(args, len(procedure.formals), len(procedure.formals))
             procedure.formals.map(lambda p: lambda_env.define(p, next(iter_args)))
             return lambda :scheme_forms.begin_form(procedure.body, lambda_env)
+        if isinstance(procedure, MuProcedure):
+            # When the procedure this form creates is called,
+            # the call frame will extend the environment the mu is called in.
+            mu_env = Frame(env)
+            iter_args = iter(valued_args)
+            validate_form(args, len(procedure.formals), len(procedure.formals))
+            procedure.formals.map(lambda p: mu_env.define(p, next(iter_args)))
+            return lambda :scheme_forms.begin_form(procedure.body, mu_env)
         
         raise SchemeError("Unknown procedure")
 
@@ -101,5 +108,5 @@ def complete_apply(procedure, args, env):
     if you attempt the extra credit."""
     validate_procedure(procedure)
     # BEGIN
-    return val
+    return scheme_apply(procedure, args, env)
     # END
