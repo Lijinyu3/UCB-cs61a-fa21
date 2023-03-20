@@ -13,7 +13,7 @@ logic for each special form separately somehow, which you can do here.
 """
 
 # BEGIN PROBLEM 1/2/3
-SPECIAL_FORMS_SET = set(['define', 'if', 'cond', 'and', 'or', 'let', 'begin', 'lambda', 'quote', 'quasiquote', 'unquote', 'mu', 'define-macro', 'expect', 'unquote-splicing', 'delay', 'cons-stream', 'set!'])
+# SPECIAL_FORMS_SET = set(['define', 'if', 'cond', 'and', 'or', 'let', 'begin', 'lambda', 'quote', 'quasiquote', 'unquote', 'mu', 'define-macro', 'expect', 'unquote-splicing', 'delay', 'cons-stream', 'set!'])
 
 def define_form(args, env):
     symbol = args.first
@@ -158,6 +158,31 @@ def enumerate_form(args, env):
     return list_expr.first
 
 
+def merge_form(args, env):
+    # (merge <comparator> <list1> <list2>)
+    def helper(comparator, longer, shorter):
+        if longer is nil:
+            return nil
+        if shorter is nil:
+            return longer
+        comp_expr = Pair(comparator, Pair(longer.first, Pair(shorter.first, nil)))
+        comp_res = scheme_eval(comp_expr, env)
+        cur_pair = Pair(longer.first, Pair(shorter.first, nil))
+        if is_scheme_false(comp_res):
+            cur_pair.first, cur_pair.rest.first = cur_pair.rest.first, cur_pair.first
+        cur_pair.rest.rest = helper(comparator, longer.rest, shorter.rest)
+        return cur_pair
+
+
+    validate_form(args, 3, 3)
+    comparator = args.first
+    list1 = args.rest.first.rest.first
+    list2 = args.rest.rest.first.rest.first
+    if len(list1) < len(list2):
+        list1, list2 = list2, list1
+    return helper(comparator, list1, list2)
+
+
 # END PROBLEM 1/2/3
 
 SPECIAL_FORMS_DICT = {
@@ -171,6 +196,7 @@ SPECIAL_FORMS_DICT = {
     'cond': cond_form,
     'let': let_form,
     'mu': mu_form,
-    'enumerate': enumerate_form
+    'enumerate': enumerate_form,
+    'merge': merge_form
 }
 
