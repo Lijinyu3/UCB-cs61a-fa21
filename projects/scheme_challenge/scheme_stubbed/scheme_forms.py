@@ -132,7 +132,7 @@ def let_form(args, env):
     binding_form(args.first)
     return begin_form(args.rest, new_env)
 
-def mu_form(args, env):
+def mu_form(args, _: None):
     # (mu ([param] ...) <body> ...)
     validate_form(args, 2)
     formals = args.first
@@ -140,6 +140,22 @@ def mu_form(args, env):
     validate_formals(formals)
     mu_procedure = MuProcedure(formals, body)
     return mu_procedure
+
+
+def enumerate_form(args, env):
+    # (enumerate (<list>)
+    def helper(cur_list, count):
+        if cur_list is nil:
+            return
+        cur_list.first = Pair(count, Pair(cur_list.first, nil))
+        helper(cur_list.rest, count + 1)
+        
+    validate_form(args, 1, 1)
+    list_expr = args.first.rest
+    if list_expr is nil:
+        return nil
+    helper(list_expr.first, 0)
+    return list_expr.first
 
 
 # END PROBLEM 1/2/3
@@ -154,6 +170,7 @@ SPECIAL_FORMS_DICT = {
     'if': if_form,
     'cond': cond_form,
     'let': let_form,
-    'mu': mu_form
+    'mu': mu_form,
+    'enumerate': enumerate_form
 }
 
