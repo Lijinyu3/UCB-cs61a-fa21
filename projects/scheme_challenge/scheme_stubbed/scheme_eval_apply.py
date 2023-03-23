@@ -23,28 +23,30 @@ def scheme_eval(expr, env, _=None):  # Optional third argument is ignored
     4
     """
     # BEGIN Problem 1/2
+    def get_procedure_and_args(expr):
+        # special forms
+        if scheme_symbolp(expr.first) and expr.first in scheme_forms.SPECIAL_FORMS_DICT:
+            proc = scheme_forms.SPECIAL_FORMS_DICT[expr.first]
+            return proc, expr.rest
+        # call expr
+        proc = scheme_eval(expr.first, env)
+        validate_procedure(proc)
+        args = expr.rest.map(lambda unevaluated: scheme_eval(unevaluated, env))
+        return proc, args
+
     
-    # atomics expressions
+    # atomics expr
     if self_evaluating(expr):
         return expr
     if scheme_symbolp(expr):
         return env.lookup(expr)
-
-    # combinations (non-atmics expressions)
-    elif scheme_listp(expr):
-        # special forms
-        if scheme_symbolp(expr.first) and expr.first in scheme_forms.SPECIAL_FORMS_DICT:
-            return scheme_forms.SPECIAL_FORMS_DICT[expr.first](expr.rest, env)
+    # combinations (non-atomic expr)
+    if scheme_listp(expr):
+        proc, args = get_procedure_and_args(expr)
+        return scheme_apply(proc, args, env)
         
-        # call expression
-        procedure = scheme_eval(expr.first, env)
-        validate_procedure(procedure)
-        args = expr.rest.map(lambda unevaled: scheme_eval(unevaled, env))
-        return scheme_apply(procedure, args, env)
-    
-    # invalid expressions
-    else:
-        raise SchemeError(f"Invalid input expression: {str(expr)}")
+    raise SchemeError(f"Invalid input expression: {str(expr)}")
+
     # END Problem 1/2
 
 
@@ -58,6 +60,8 @@ def scheme_apply(procedure, args, env):
         return [pair_args.first] + get_args(pair_args.rest)
     
     def get_appliable_func(procedure, valued_args, env):
+        if callable(procedure):
+            return lambda :procedure(args, env)
         if isinstance(procedure, BuiltinProcedure):
             if procedure.need_env:
                 valued_args.append(env)
@@ -98,7 +102,34 @@ def scheme_apply(procedure, args, env):
 
 # Make classes/functions for creating tail recursive programs here!
 # BEGIN Problem EC
-"*** YOUR CODE HERE ***"
+class Unevaluated:
+    def __init__(self, expr, env) -> None:
+        self.expr = expr
+        # self.arguments = arguments
+        self.env = env
+
+def is_tail_call(expr, env):
+    if not scheme_listp(expr) or expr is nil:
+        return False
+    proc = expr.first
+    if not scheme_symbolp(proc):
+        return False
+    if proc in scheme_forms.SPECIAL_FORMS_DICT:
+        return False
+    if isinstance(scheme_eval(proc, env), BuiltinProcedure):
+        return False
+    return True
+
+def optimize_scheme_eval(unoptimized_eval):
+    def optimized_eval(expr, env, tail_context= False):
+        if tail_context and is_tail_call(expr, env):
+            return Unevaluated(expr, env)
+        if not isinstance(expr, Unevaluated):
+            expr = unoptimized_eval(expr, env)
+        while isinstance(expr, Unevaluated) and not tail_context:
+            expr = unoptimized_eval(expr.expr, expr.env)
+        return expr
+    return optimized_eval
 # END Problem EC
 
 
@@ -108,5 +139,11 @@ def complete_apply(procedure, args, env):
     if you attempt the extra credit."""
     validate_procedure(procedure)
     # BEGIN
-    return scheme_apply(procedure, args, env)
+    result =  scheme_apply(procedure, args, env)
+    if isinstance(result, Unevaluated):
+        return scheme_eval(result, result.env)
+    return result
     # END
+
+# tail call optimization
+scheme_eval = optimize_scheme_eval(scheme_eval)

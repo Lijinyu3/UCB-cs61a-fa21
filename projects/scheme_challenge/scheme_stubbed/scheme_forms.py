@@ -42,9 +42,12 @@ def quote_form(args, _= None):
     return args.first
 
 def begin_form(args, env):
-    value = scheme_eval(args.first, env)
+    # tail context
     if args.rest is nil:
-        return value
+        return scheme_eval(args.first, env, True)
+    scheme_eval(args.first, env)
+    # if args.rest is nil:
+    #     return value
     return begin_form(args.rest, env)
 
 def lambda_form(args, env):
@@ -66,8 +69,13 @@ def and_form(args, env):
     # If no arguments are provided, return #t.
     if args is nil:
         return True
+    # tail context
+    # also the last one
+    if args.rest is nil:
+        return scheme_eval(args.first, env, True)
+
     cur_bool = scheme_eval(args.first, env)
-    if is_scheme_false(cur_bool) or args.rest is nil:
+    if is_scheme_false(cur_bool):
         return cur_bool
     return and_form(args.rest, env)
 
@@ -77,6 +85,10 @@ def or_form(args, env):
     # If no test is true and there are no more tests left, return #f.
     if args is nil:
         return False
+    # tail context
+    if args.rest is nil:
+        return scheme_eval(args.first, env, True)
+
     cur_bool = scheme_eval(args.first, env)
     if is_scheme_true(cur_bool):
         return cur_bool
@@ -88,7 +100,11 @@ def if_form(args, env):
     validate_form(args, 2, 3)
     predicate_expr, cons_expr, alter_expr = args.first, args.rest.first, args.rest.rest.first
     predicate_value = scheme_eval(predicate_expr, env)
-    return scheme_eval(cons_expr, env) if is_scheme_true(predicate_value) else scheme_eval(alter_expr, env)
+    # tail context
+    if is_scheme_true(predicate_value):
+        return scheme_eval(cons_expr, env, True)
+    else:
+        return scheme_eval(alter_expr, env, True)
 
 
 def cond_form(args, env):
